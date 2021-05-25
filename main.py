@@ -52,6 +52,8 @@ async def downloadTiktok(url):
 	localDow = downloadCount
 	downloadCount += 1
 	try:
+		print(url)
+		
 		browser = await pyppeteer.launch({
 			"args": ['--no-sandbox', '--disable-setuid-sandbox'],
 		});
@@ -62,8 +64,11 @@ async def downloadTiktok(url):
 			videoUrl = await page.evaluate('(element) => element.src', element)
 		except:
 			await page.goto(url)
+			# await page.waitForSelector('video')
+			await page.screenshot({'path': 'example.png'})
 			element = await page.querySelector('video')
 			videoUrl = await page.evaluate('(element) => element.src', element)
+		
 		print(videoUrl)
 		cookies = await page.cookies()
 		await browser.close()
@@ -100,6 +105,10 @@ async def downloadTiktok(url):
 		return(pathToLastFile)
 	except Exception as e: 
 		print(e)
+		try:
+			await browser.close()
+		except:
+			pass
 
 my_secret = os.environ['token']
 import discord
@@ -123,7 +132,7 @@ class MyClient(discord.Client):
 			embed.add_field(name="Say Hi to the Creator", value="Message me <@!322193320199716865> and join my discord server dedicated to my projects [https://discord.gg/fKcTKxW6Jv](https://discord.gg/fKcTKxW6Jv).", inline=False)
 			await message.channel.send(embed=embed)
 		# tries to download if it sees .tiktok. in a message
-		if (re.search(".tiktok.", message.content) != None):
+		if (re.search("\.tiktok\.", message.content) != None):
 			toEdit = await message.channel.send('working on it', mention_author=True)
 			try:
 				fileLoc = await downloadTiktok(message.content)
@@ -149,5 +158,4 @@ class MyClient(discord.Client):
 keep_alive()
 client = MyClient(activity=discord.Activity(type=discord.ActivityType.listening, name='&Help'))
 client.run(my_secret)
-
 
