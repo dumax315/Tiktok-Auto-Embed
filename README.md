@@ -9,3 +9,9 @@ There are 3 parts to the video pipline:
 First pyppeteer goes to the tiktok link and finds the file link. It also saves the cookies.
 Next I send a aiohttp request with custom headers and cookies to download the video.
 Finaly if the tiktok is over 8 mb the code uses asyncio.create_subprocess_exec to run ffmpeg on the file and compress it.
+
+ad on tiktok:
+https://www.tiktok.com/@theo.pnw/video/6964829873294560517?is_copy_url=1&is_from_webapp=v1 
+
+Link to install:
+tinyurl.com/TiktokAutoEmbed
