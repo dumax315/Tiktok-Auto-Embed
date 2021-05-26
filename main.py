@@ -1,4 +1,3 @@
-from keep_alive import keep_alive
 
 import os
 import re
@@ -113,8 +112,7 @@ handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(me
 logger.addHandler(handler)
 my_secret = os.environ['token']
 
-# hosts a website that can be pinged for uptime
-keep_alive()
+my_secret = "ODQ1MDE5NDA4OTI4NzM1MjUy.YKa3pg.t1ub5saJ8oRjxpays4a1BytdVmI"
 # sets the activity to listing to &help one start
 client = discord.Client(activity=discord.Activity(type=discord.ActivityType.listening, name='&Help'))
 
