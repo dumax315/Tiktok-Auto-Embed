@@ -14,4 +14,4 @@ ad on tiktok:
 https://www.tiktok.com/@theo.pnw/video/6964829873294560517?is_copy_url=1&is_from_webapp=v1 
 
 Link to install:
-tinyurl.com/TiktokAutoEmbed
+https://tinyurl.com/TiktokAutoEmbed
