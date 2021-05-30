@@ -63,10 +63,25 @@ async def downloadTiktok(url):
 		except:
 			await page.goto(url)
 			# await page.waitForSelector('video')
+			# await page.screenshot({'path': 'example.png'})
 			element = await page.querySelector('video')
 			videoUrl = await page.evaluate('(element) => element.src', element)
-
-		# await page.screenshot({'path': 'example.png'})
+		try:
+			cap = await page.querySelector('.tt-video-meta-caption')
+			capt = await page.evaluate('(element) => element.innerText', cap)
+			print(capt)
+		except Exception as e: 
+			print(e)
+			capt = "No Caption"
+		try:
+			LiCoShData = await page.querySelectorAll('.jsx-1045706868.bar-item-wrapper')
+			LiCoSh = []
+			for i in LiCoShData:
+				LiCoSh.append(await page.evaluate('(element) => element.innerText', i))
+			print(LiCoSh)
+		except Exception as e: 
+			print(e)
+			LiCoSh = ["error","error","error"]
 		
 		print(videoUrl)
 		cookies = await page.cookies()
@@ -103,7 +118,7 @@ async def downloadTiktok(url):
 			pathToLastFile = pathToLastFile + "comp.mp4"
 		
 		#returns the path to the file
-		return(pathToLastFile)
+		return(pathToLastFile,capt,LiCoSh)
 	except Exception as e: 
 		print(e)
 		# closes the browser if it is open 
@@ -154,7 +169,7 @@ async def on_message(message):
 	elif (re.search("\.tiktok\.", message.content) != None):
 		toEdit = await message.channel.send('working on it', mention_author=True)
 		try:
-			fileLoc = await downloadTiktok(message.content)
+			fileLoc, capt, LiCoShare = await downloadTiktok(message.content)
 			print(message.guild)
 			file = discord.File(fileLoc)
 			embed=discord.Embed(url=message.content, description=message.content, color=discord.Color.blue())
@@ -167,6 +182,9 @@ async def on_message(message):
 			except:
 				print("pm")
 				embed.set_author(name=message.author, url="https://discordapp.com/users/"+str(message.author.id), icon_url=message.author.avatar_url)
+			
+			LikesComString = ":heart: " + LiCoShare[0] +" :speech_left: " +LiCoShare[1]+ " :arrow_right: " + LiCoShare[2]
+			embed.add_field(name=capt, value=LikesComString, inline=True)
 			await message.channel.send(embed=embed,file=file)
 			print(fileLoc)
 			os.remove(fileLoc)
