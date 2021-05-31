@@ -25,7 +25,7 @@ async def run_command(video_full_path, output_file_name, target_size):
 	cmd =f"ffmpeg -y -i {video_full_path} -c:v libx264 -passlogfile {video_full_path}passlog -preset ultrafast -b:v {bitrate} -pass 1 -an -f mp4 {output_file_name}"
 	print(cmd)
 
-	cmd2 =f"ffmpeg -y -i {video_full_path} -c:v libx264 -passlogfile {video_full_path}passlog -preset ultrafast -b:v {bitrate} -pass 2 -acodec copy {output_file_name}"
+	cmd2 =f"ffmpeg -y -i {video_full_path} -c:v libx264 -passlogfile {video_full_path}passlog -preset ultrafast -b:v {bitrate} -pass 2 -c:a aac -b:a 32k {output_file_name}"
 	print(cmd2)
 
 	pro1 = await asyncio.create_subprocess_exec(*cmd.split(), stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
@@ -149,7 +149,12 @@ async def on_ready():
 	print('Logged in as')
 	print(client.user.name)
 	print(client.user.id)
-	print(list(map(getGuildName, client.guilds)))
+	guildsSm =list(map(getGuildName, client.guilds))
+	print(guildsSm)
+	totalusers = 0
+	for i in guildsSm:
+		totalusers += i[1]
+	print(totalusers)
 	print(len(client.guilds))
 	print('------')
 
