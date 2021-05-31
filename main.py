@@ -66,6 +66,7 @@ async def downloadTiktok(url):
 			# await page.screenshot({'path': 'example.png'})
 			element = await page.querySelector('video')
 			videoUrl = await page.evaluate('(element) => element.src', element)
+		#gets the video captions
 		try:
 			cap = await page.querySelector('.tt-video-meta-caption')
 			capt = await page.evaluate('(element) => element.innerText', cap)
@@ -73,6 +74,7 @@ async def downloadTiktok(url):
 		except Exception as e: 
 			print(e)
 			capt = "No Caption"
+		#get the likes comments and shares
 		try:
 			LiCoShData = await page.querySelectorAll('.jsx-1045706868.bar-item-wrapper')
 			LiCoSh = []
