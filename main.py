@@ -1,17 +1,4 @@
-from keep_alive import keep_alive
-
 import os
-import re
-import aiohttp
-import asyncio
-import pyppeteer
-import discord
-import logging
-import math
-
-workingDir = os.getcwd()
-
-downloadCount = 0import os
 import re
 import aiohttp
 import asyncio
