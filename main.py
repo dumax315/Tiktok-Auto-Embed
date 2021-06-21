@@ -7,6 +7,9 @@ import discord
 import logging
 import math
 
+from replit import db
+
+
 # from keep_alive import keep_alive
 
 # workingDir = os.getcwd()
@@ -22,7 +25,7 @@ async def run_command(video_full_path, output_file_name, target_size):
 	print(bitrate)
 
 	# consider making very fast not ultrafast
-	cmd =f"ffmpeg -y -i {video_full_path} -c:v libx264 -passlogfile {video_full_path}passlog -preset ultrafast -b:v {bitrate} -pass 1 -an -f mp4 {output_file_name}"
+	cmd = f"ffmpeg -y -i {video_full_path} -c:v libx264 -passlogfile {video_full_path}passlog -preset ultrafast -b:v {bitrate} -pass 1 -an -f mp4 {output_file_name}"
 	print(cmd)
 
 	cmd2 =f"ffmpeg -y -i {video_full_path} -c:v libx264 -passlogfile {video_full_path}passlog -preset ultrafast -b:v {bitrate} -pass 2 -c:a aac -b:a 32k {output_file_name}"
@@ -51,11 +54,15 @@ async def downloadTiktok(url):
 	downloadCount += 1
 	try:
 		# print(url)
+		print("starting process")
 		browser = await pyppeteer.launch({
-			'headless': False,
+			'headless': True,
 			"args": ['--no-sandbox', '--disable-setuid-sandbox'],
 		});
+		
 		page = await browser.newPage()
+		await page.setUserAgent('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.72 Safari/537.36')
+		# await page.setDefaultNavigationTimeout(1000000)
 		await page.goto(url)
 		try:
 			element = await page.querySelector('video')
@@ -78,7 +85,8 @@ async def downloadTiktok(url):
 			capt = "No Caption"
 		#get the likes comments and shares
 		try:
-			LiCoShData = await page.querySelectorAll('.jsx-1045706868.bar-item-wrapper')
+			LiCoShData = await page.querySelectorAll('.bar-item-text.jsx-961836452')
+			# print(LiCoShData)
 			LiCoSh = []
 			for i in LiCoShData:
 				LiCoSh.append(await page.evaluate('(element) => element.innerText', i))
@@ -86,8 +94,27 @@ async def downloadTiktok(url):
 		except Exception as e: 
 			print(e)
 			LiCoSh = ["error","error","error"]
-		
-		print(videoUrl)
+		if(LiCoSh == []):
+			LiCoSh = ["error","error","error"]
+		# print(LiCoSh)
+		#get poster image
+		try:
+			imgobj = await page.querySelector('span.tiktok-avatar.tiktok-avatar-circle.avatar>img')
+			imgsrc = await page.evaluate('(element) => element.src', imgobj)
+		except Exception as e: 
+			print(e)
+			imgsrc = ""
+
+		#get poster name
+		try:
+			posternameObj = await page.querySelector('h3.author-uniqueId')
+			postername = await page.evaluate('(element) => element.innerText', posternameObj)
+		except Exception as e: 
+			print(e)
+			postername = ""
+		# print(postername)
+
+		# print(videoUrl)
 		cookies = await page.cookies()
 		await browser.close()
 	
@@ -121,8 +148,9 @@ async def downloadTiktok(url):
 			await run_command(pathToLastFile, pathToLastFile + "comp.mp4", 8388000)
 			pathToLastFile = pathToLastFile + "comp.mp4"
 		
+		db["dataSent"] += os.path.getsize(pathToLastFile)
 		#returns the path to the file
-		return(pathToLastFile,capt,LiCoSh)
+		return(pathToLastFile,capt,LiCoSh,imgsrc,postername)
 	except Exception as e: 
 		print(e)
 		# closes the browser if it is open 
@@ -146,18 +174,24 @@ client = discord.Client(activity=discord.Activity(type=discord.ActivityType.list
 def getGuildName(n):
   return [n.name, n.member_count]
 
+def getNum(obj):
+	return obj[1]
+
 @client.event
 async def on_ready():
 	print('Logged in as')
 	print(client.user.name)
 	print(client.user.id)
 	guildsSm =list(map(getGuildName, client.guilds))
-	print("\n".join(str(x) for x in guildsSm))
+	guildsSm.sort(key=getNum)
+	print(guildsSm)
 	totalusers = 0
 	for i in guildsSm:
 		totalusers += i[1]
-	print(totalusers)
-	print(len(client.guilds))
+	print("Total Users: " + str(totalusers))
+	print("Total Servers: " + str(len(client.guilds)))
+	print("Tiktoks Converted: " + str(db["tiktoksConverted"]))
+	print("Data Sent: " + str(db["dataSent"]))
 	print('------')
 
 @client.event
@@ -177,8 +211,18 @@ async def on_message(message):
 	# tries to download if it sees .tiktok. in a message
 	elif (re.search("\.tiktok\.", message.content) != None):
 		toEdit = await message.channel.send('working on it', mention_author=True)
+		if(re.search(" ", message.content) != None):
+			print("bad string")
+			splitonSpace = message.content.split()
+			for i in range(len(splitonSpace)):
+				if(re.search("\.tiktok\.", splitonSpace[i]) != None):
+					message.content = splitonSpace[i]
+
+			delOrinoal = False
+		else:
+			delOrinoal = True
 		try:
-			fileLoc, capt, LiCoShare = await downloadTiktok(message.content)
+			fileLoc, capt, LiCoShare, avaSrc, postername = await downloadTiktok(message.content)
 			print(message.guild)
 			file = discord.File(fileLoc)
 			embed=discord.Embed(url=message.content, description=message.content, color=discord.Color.blue())
@@ -191,20 +235,38 @@ async def on_message(message):
 			except:
 				print("pm")
 				embed.set_author(name=message.author, url="https://discordapp.com/users/"+str(message.author.id), icon_url=message.author.avatar_url)
-			
 			LikesComString = ":heart: " + LiCoShare[0] +" :speech_left: " +LiCoShare[1]+ " :arrow_right: " + LiCoShare[2]
 			embed.add_field(name=capt, value=LikesComString, inline=True)
-			await message.channel.send(embed=embed,file=file)
+			embed.set_footer(text=postername, icon_url=avaSrc)
+			toReact = await message.channel.send(embed=embed,file=file)
+			await toReact.add_reaction("❌")
+			db["tiktoksConverted"] += 1
 			print(fileLoc)
 			os.remove(fileLoc)
 			await toEdit.delete()
 			#tries to delete the user sent message 
-			try:
-				await message.delete()
-			except:
-				print("no perms")
+			if(delOrinoal):
+				try:
+					await message.delete()
+				except:
+					print("no perms")
 		except Exception as e: 
 			print(e)
 			await toEdit.delete()
+
+@client.event
+async def on_raw_reaction_add(payload):
+	
+	# Make sure that the message the user is reacting to is the one we care about.
+	message = await client.get_channel(payload.channel_id).fetch_message(payload.message_id)
+	user = payload.member
+	# print(payload)
+	if message.author.id != client.user.id:
+			return
+	# print(message.embeds[0].author.url.split("/")[-1])
+	# check if the clicker is the orinional sender
+	if(user.id == int(message.embeds[0].author.url.split("/")[-1]) and payload.emoji.name =='❌'): 
+		await message.delete()
+
 
 client.run(my_secret)
