@@ -63,12 +63,12 @@ async def downloadTiktok(url):
 		page = await browser.newPage()
 		await page.setUserAgent('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.72 Safari/537.36')
 		# await page.setDefaultNavigationTimeout(1000000)
-		await page.goto(url)
+		await page.goto(url, {"waitUntil": 'load', "timeout": 1000000})
 		try:
 			element = await page.querySelector('video')
 			videoUrl = await page.evaluate('(element) => element.src', element)
 		except:
-			await page.goto(url)
+			await page.goto(url, {"waitUntil": 'load', "timeout": 1000000})
 			# await page.waitForSelector('video')
 			# await page.waitFor(2000);
 			
@@ -183,6 +183,7 @@ async def on_ready():
 	print(client.user.name)
 	print(client.user.id)
 	guildsSm =list(map(getGuildName, client.guilds))
+	
 	guildsSm.sort(key=getNum)
 	print(guildsSm)
 	totalusers = 0
@@ -191,7 +192,9 @@ async def on_ready():
 	print("Total Users: " + str(totalusers))
 	print("Total Servers: " + str(len(client.guilds)))
 	print("Tiktoks Converted: " + str(db["tiktoksConverted"]))
-	print("Data Sent: " + str(db["dataSent"]))
+	print("Data Sent: " + str(db["dataSent"]/8388608*8))
+	print("discords using bot: " + str(db["discordsUsingBot"]))
+	print("Total discords using bot " + str(len(db["discordsUsingBot"])))
 	print('------')
 
 @client.event
@@ -208,12 +211,27 @@ async def on_message(message):
 		embed.add_field(name="Say Hi to the Creator", value="Message me <@!322193320199716865> and join my discord server dedicated to my projects [https://discord.gg/fKcTKxW6Jv](https://discord.gg/fKcTKxW6Jv).", inline=False)
 		await message.channel.send(embed=embed)
 	
+	# elif message.content.lower().startswith('&leaveunusedservers '):
+	# 	embed=discord.Embed(title="TikTok Auto Embed Leaving Now", description="If you want to continue using the bot go to\nhttps://tinyurl.com/TiktokAutoEmbed", color=0xFF5733)
+	# 	for guild in client.guilds:
+	# 		if(str(guild) not in db["discordsUsingBot"]):
+	# 			for channel in guild.channels:
+	# 				# print(channel.name)
+	# 				if(channel.name == 'general'):
+	# 					print(channel)
+	# 					try:
+	# 						await channel.send(embed=embed)
+	# 					except Exception as e: 
+	# 						print(e)
+	# 			await guild.leave()
+
 	# tries to download if it sees .tiktok. in a message
 	elif (re.search("\.tiktok\.", message.content) != None):
 		toEdit = await message.channel.send('working on it', mention_author=True)
 		if(re.search(" ", message.content) != None):
 			print("bad string")
 			splitonSpace = message.content.split()
+			print(splitonSpace)
 			for i in range(len(splitonSpace)):
 				if(re.search("\.tiktok\.", splitonSpace[i]) != None):
 					message.content = splitonSpace[i]
@@ -224,6 +242,8 @@ async def on_message(message):
 		try:
 			fileLoc, capt, LiCoShare, avaSrc, postername = await downloadTiktok(message.content)
 			print(message.guild)
+			if(str(message.guild) not in db["discordsUsingBot"]):
+				db["discordsUsingBot"].append(str(message.guild))
 			file = discord.File(fileLoc)
 			embed=discord.Embed(url=message.content, description=message.content, color=discord.Color.blue())
 			# uses the authors nick name if they have one
