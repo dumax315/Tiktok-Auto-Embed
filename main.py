@@ -195,10 +195,23 @@ async def on_ready():
 	print("Data Sent: " + str(db["dataSent"]/8388608*8))
 	print("discords using bot: " + str(db["discordsUsingBot"]))
 	print("Total discords using bot " + str(len(db["discordsUsingBot"])))
+	# # db["listOfDiscordsMess"] = []
+	# # toMake = []
+	# # for i in range(0, len(db["discordsUsingBot"])):
+	# # 	toMake.append(0)
+	# # print(toMake)
+	# db["listOfDiscordsMess"] = toMake
+	print(db["listOfDiscordsMess"])
 	print('------')
 
 @client.event
 async def on_message(message):
+	#is server dead?
+	if(str(message.guild) in db["discordsUsingBot"]):
+		# print(db["discordsUsingBot"].index(str(message.guild)))
+		db["listOfDiscordsMess"][db["discordsUsingBot"].index(str(message.guild))] += 1
+		# print(db["listOfDiscordsMess"][db["discordsUsingBot"].index(str(message.guild))])
+		
 	# we do not want the bot to reply to itself
 	if message.author.id == client.user.id:
 		return
@@ -211,19 +224,123 @@ async def on_message(message):
 		embed.add_field(name="Say Hi to the Creator", value="Message me <@!322193320199716865> and join my discord server dedicated to my projects [https://discord.gg/fKcTKxW6Jv](https://discord.gg/fKcTKxW6Jv).", inline=False)
 		await message.channel.send(embed=embed)
 	
-	# elif message.content.lower().startswith('&leaveunusedservers '):
+	elif message.content.lower().startswith('&getdata'):
+		if(str(message.author.id) == "322193320199716865"):
+			print('Logged in as')
+			print(client.user.name)
+			print(client.user.id)
+			guildsSm =list(map(getGuildName, client.guilds))
+			
+			guildsSm.sort(key=getNum)
+			totalusers = 0
+			for i in guildsSm:
+				totalusers += i[1]
+			print("Data Sent: " + str(db["dataSent"]/8388608*8))
+			strTosend = 'Logged in as' +client.user.name + str(client.user.id) + "\nTotal Users: " + str(totalusers) + "\nTotal Servers: " + str(len(client.guilds)) + "\nTiktoks Converted: " + str(db["tiktoksConverted"])+"\nData Sent: " + str(db["dataSent"]/8388608*8) + "\nTotal discords using bot " + str(len(db["discordsUsingBot"]))
+
+			await message.channel.send(strTosend)
+			await message.channel.send(guildsSm)
+			await message.channel.send("discords using bot: "+ str(db["discordsUsingBot"]))
+
+	# elif message.content.lower().startswith('&leaveunusedservers'):
 	# 	embed=discord.Embed(title="TikTok Auto Embed Leaving Now", description="If you want to continue using the bot go to\nhttps://tinyurl.com/TiktokAutoEmbed", color=0xFF5733)
 	# 	for guild in client.guilds:
 	# 		if(str(guild) not in db["discordsUsingBot"]):
+	# 			print("doesn'tuse")
+	# 			print(str(guild))
+	# 			foundGen = False
 	# 			for channel in guild.channels:
 	# 				# print(channel.name)
+	# 				# global foundGen
 	# 				if(channel.name == 'general'):
 	# 					print(channel)
 	# 					try:
 	# 						await channel.send(embed=embed)
+	# 						foundGen = True
 	# 					except Exception as e: 
 	# 						print(e)
+	# 			if(not foundGen):
+	# 				notSent = True
+	# 				i = 0
+	# 				while(notSent and i<= 10):
+	# 					try:
+	# 						await guild.channels[i].send(embed=embed)
+	# 						print(guild.channels[i])
+	# 						notSent = False
+	# 					except Exception as e: 
+	# 						print(e)
+	# 					i += 1
+				
 	# 			await guild.leave()
+			# elif(db["listOfDiscordsMess"][db["discordsUsingBot"].index(str(guild))] <= 5):
+			# 	print("inactive")
+			# 	print(str(guild))
+			# 	foundGen = False
+			# 	for channel in guild.channels:
+			# 		# print(channel.name)
+			# 		# global foundGen
+			# 		if(channel.name == 'general'):
+			# 			print(channel)
+			# 			try:
+			# 				await channel.send(embed=embed)
+			# 				foundGen = True
+			# 			except Exception as e: 
+			# 				print(e)
+			# 	if(not foundGen):
+			# 		notSent = True
+			# 		i = 0
+			# 		while(notSent and i<= 10):
+			# 			try:
+			# 				await guild.channels[i].send(embed=embed)
+			# 				print(guild.channels[i])
+			# 				notSent = False
+			# 			except Exception as e: 
+			# 				print(e)
+			# 			i += 1
+			# 	await guild.leave()
+			# elif(guild.member_count <= 5):
+			# 	print("noMembers")
+			# 	print(str(guild))
+			# 	print(guild.member_count)
+			# 	foundGen = False
+			# 	for channel in guild.channels:
+			# 		# print(channel.name)
+			# 		# global foundGen
+			# 		if(channel.name == 'general'):
+			# 			print(channel)
+			# 			try:
+			# 				await channel.send(embed=embed)
+			# 				foundGen = True
+			# 			except Exception as e: 
+			# 				print(e)
+			# 	if(not foundGen):
+			# 		notSent = True
+			# 		i = 0
+			# 		while(notSent and i<= 10):
+			# 			try:
+			# 				await guild.channels[i].send(embed=embed)
+			# 				print(guild.channels[i])
+			# 				notSent = False
+			# 			except Exception as e: 
+			# 				print(e)
+			# 			i += 1
+			# 	await guild.leave()
+
+	# elif message.content.lower().startswith('&leaveunusedservers'):
+	# # 	embed=discord.Embed(title="TikTok Auto Embed Leaving Now", description="If you want to continue using the bot go to\nhttps://tinyurl.com/TiktokAutoEmbed", color=0xFF5733)
+	# 	getGuildNames = []
+	# 	for guild in client.guilds:
+	# 		getGuildNames.append(str(guild))
+	# 	print(getGuildNames)
+	# 	newdiscordsUsingBot = []
+	# 	newlistOfDiscordsMess = [] 
+	# 	for guild in db["discordsUsingBot"]:
+	# 		if(guild in getGuildNames):
+	# 			newdiscordsUsingBot.append(guild)
+	# 			newlistOfDiscordsMess.append(db["listOfDiscordsMess"][db["discordsUsingBot"].index(str(guild))])
+
+	# 	db["discordsUsingBot"] = newdiscordsUsingBot
+	# 	db["listOfDiscordsMess"] =newlistOfDiscordsMess
 
 	# tries to download if it sees .tiktok. in a message
 	elif (re.search("\.tiktok\.", message.content) != None):
@@ -244,6 +361,9 @@ async def on_message(message):
 			print(message.guild)
 			if(str(message.guild) not in db["discordsUsingBot"]):
 				db["discordsUsingBot"].append(str(message.guild))
+				db["listOfDiscordsMess"].append(0)
+			else:
+				db["listOfDiscordsMess"][db["discordsUsingBot"].index(str(message.guild))] += 1
 			file = discord.File(fileLoc)
 			embed=discord.Embed(url=message.content, description=message.content, color=discord.Color.blue())
 			# uses the authors nick name if they have one
