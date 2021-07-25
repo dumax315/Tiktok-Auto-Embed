@@ -193,6 +193,7 @@ async def on_ready():
 	print("Total Servers: " + str(len(client.guilds)))
 	print("Tiktoks Converted: " + str(db["tiktoksConverted"]))
 	print("Data Sent: " + str(db["dataSent"]/8388608*8))
+	print("Total users using bot " + str(len(db["uniqueUsersUsed"])))
 	print("discords using bot: " + str(db["discordsUsingBot"]))
 	print("Total discords using bot " + str(len(db["discordsUsingBot"])))
 	# # db["listOfDiscordsMess"] = []
@@ -202,6 +203,7 @@ async def on_ready():
 	# # print(toMake)
 	# db["listOfDiscordsMess"] = toMake
 	print(db["listOfDiscordsMess"])
+
 	print('------')
 
 @client.event
@@ -236,7 +238,7 @@ async def on_message(message):
 			for i in guildsSm:
 				totalusers += i[1]
 			print("Data Sent: " + str(db["dataSent"]/8388608*8))
-			strTosend = 'Logged in as' +client.user.name + str(client.user.id) + "\nTotal Users: " + str(totalusers) + "\nTotal Servers: " + str(len(client.guilds)) + "\nTiktoks Converted: " + str(db["tiktoksConverted"])+"\nData Sent: " + str(db["dataSent"]/8388608*8) + "\nTotal discords using bot " + str(len(db["discordsUsingBot"]))
+			strTosend = 'Logged in as ' + client.user.name + str(client.user.id) + "\nTotal Users: " + str(totalusers) + "\nTotal Servers: " + str(len(client.guilds)) + "\nTiktoks Converted: " + str(db["tiktoksConverted"])+"\nData Sent: " + str(db["dataSent"]/8388608*8) + "\nTotal discords using bot " + str(len(db["discordsUsingBot"]))+"\nTotal users using bot " + str(len(db["uniqueUsersUsed"]))
 
 			await message.channel.send(strTosend)
 			await message.channel.send(guildsSm)
@@ -272,61 +274,61 @@ async def on_message(message):
 	# 					i += 1
 				
 	# 			await guild.leave()
-			# elif(db["listOfDiscordsMess"][db["discordsUsingBot"].index(str(guild))] <= 5):
-			# 	print("inactive")
-			# 	print(str(guild))
-			# 	foundGen = False
-			# 	for channel in guild.channels:
-			# 		# print(channel.name)
-			# 		# global foundGen
-			# 		if(channel.name == 'general'):
-			# 			print(channel)
-			# 			try:
-			# 				await channel.send(embed=embed)
-			# 				foundGen = True
-			# 			except Exception as e: 
-			# 				print(e)
-			# 	if(not foundGen):
-			# 		notSent = True
-			# 		i = 0
-			# 		while(notSent and i<= 10):
-			# 			try:
-			# 				await guild.channels[i].send(embed=embed)
-			# 				print(guild.channels[i])
-			# 				notSent = False
-			# 			except Exception as e: 
-			# 				print(e)
-			# 			i += 1
-			# 	await guild.leave()
-			# elif(guild.member_count <= 5):
-			# 	print("noMembers")
-			# 	print(str(guild))
-			# 	print(guild.member_count)
-			# 	foundGen = False
-			# 	for channel in guild.channels:
-			# 		# print(channel.name)
-			# 		# global foundGen
-			# 		if(channel.name == 'general'):
-			# 			print(channel)
-			# 			try:
-			# 				await channel.send(embed=embed)
-			# 				foundGen = True
-			# 			except Exception as e: 
-			# 				print(e)
-			# 	if(not foundGen):
-			# 		notSent = True
-			# 		i = 0
-			# 		while(notSent and i<= 10):
-			# 			try:
-			# 				await guild.channels[i].send(embed=embed)
-			# 				print(guild.channels[i])
-			# 				notSent = False
-			# 			except Exception as e: 
-			# 				print(e)
-			# 			i += 1
-			# 	await guild.leave()
+	# 		elif(db["listOfDiscordsMess"][db["discordsUsingBot"].index(str(guild))] <= 25):
+	# 			print("inactive")
+	# 			print(str(guild))
+	# 			foundGen = False
+	# 			for channel in guild.channels:
+	# 				# print(channel.name)
+	# 				# global foundGen
+	# 				if(channel.name == 'general'):
+	# 					print(channel)
+	# 					try:
+	# 						await channel.send(embed=embed)
+	# 						foundGen = True
+	# 					except Exception as e: 
+	# 						print(e)
+	# 			if(not foundGen):
+	# 				notSent = True
+	# 				i = 0
+	# 				while(notSent and i<= 10):
+	# 					try:
+	# 						await guild.channels[i].send(embed=embed)
+	# 						print(guild.channels[i])
+	# 						notSent = False
+	# 					except Exception as e: 
+	# 						print(e)
+	# 					i += 1
+	# 			await guild.leave()
+	# 		elif(guild.member_count <= 5):
+	# 			print("noMembers")
+	# 			print(str(guild))
+	# 			print(guild.member_count)
+	# 			foundGen = False
+	# 			for channel in guild.channels:
+	# 				# print(channel.name)
+	# 				# global foundGen
+	# 				if(channel.name == 'general'):
+	# 					print(channel)
+	# 					try:
+	# 						await channel.send(embed=embed)
+	# 						foundGen = True
+	# 					except Exception as e: 
+	# 						print(e)
+	# 			if(not foundGen):
+	# 				notSent = True
+	# 				i = 0
+	# 				while(notSent and i<= 10):
+	# 					try:
+	# 						await guild.channels[i].send(embed=embed)
+	# 						print(guild.channels[i])
+	# 						notSent = False
+	# 					except Exception as e: 
+	# 						print(e)
+	# 					i += 1
+	# 			await guild.leave()
 
-	# elif message.content.lower().startswith('&leaveunusedservers'):
+	# elif message.content.lower().startswith('&resetdiscordlists'):
 	# # 	embed=discord.Embed(title="TikTok Auto Embed Leaving Now", description="If you want to continue using the bot go to\nhttps://tinyurl.com/TiktokAutoEmbed", color=0xFF5733)
 	# 	getGuildNames = []
 	# 	for guild in client.guilds:
@@ -359,6 +361,8 @@ async def on_message(message):
 		try:
 			fileLoc, capt, LiCoShare, avaSrc, postername = await downloadTiktok(message.content)
 			print(message.guild)
+			if(str(message.author.id) not in db["uniqueUsersUsed"]):
+				db["uniqueUsersUsed"].append(str(message.author.id))
 			if(str(message.guild) not in db["discordsUsingBot"]):
 				db["discordsUsingBot"].append(str(message.guild))
 				db["listOfDiscordsMess"].append(0)
@@ -392,6 +396,7 @@ async def on_message(message):
 					print("no perms")
 		except Exception as e: 
 			print(e)
+			os.remove(fileLoc)
 			await toEdit.delete()
 
 @client.event
