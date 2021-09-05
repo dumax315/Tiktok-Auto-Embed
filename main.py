@@ -7,6 +7,7 @@ import discord
 import logging
 import math
 
+from discord.ext import tasks
 from replit import db
 
 
@@ -85,7 +86,7 @@ async def downloadTiktok(url):
 			capt = "No Caption"
 		#get the likes comments and shares
 		try:
-			LiCoShData = await page.querySelectorAll('.bar-item-text.jsx-961836452')
+			LiCoShData = await page.querySelectorAll('.bar-item-text.jsx-18968439')
 			# print(LiCoShData)
 			LiCoSh = []
 			for i in LiCoShData:
@@ -194,15 +195,16 @@ async def on_ready():
 	print("Tiktoks Converted: " + str(db["tiktoksConverted"]))
 	print("Data Sent: " + str(db["dataSent"]/8388608*8))
 	print("Total users using bot " + str(len(db["uniqueUsersUsed"])))
-	print("discords using bot: " + str(db["discordsUsingBot"]))
-	print("Total discords using bot " + str(len(db["discordsUsingBot"])))
+	sendUpdate.start()
+	# print("discords using bot: " + str(db["discordsUsingBot"]))
+	# print("Total discords using bot " + str(len(db["discordsUsingBot"])))
 	# # db["listOfDiscordsMess"] = []
 	# # toMake = []
 	# # for i in range(0, len(db["discordsUsingBot"])):
 	# # 	toMake.append(0)
 	# # print(toMake)
 	# db["listOfDiscordsMess"] = toMake
-	print(db["listOfDiscordsMess"])
+	# print(db["listOfDiscordsMess"])
 
 	print('------')
 
@@ -226,6 +228,10 @@ async def on_message(message):
 		embed.add_field(name="Say Hi to the Creator", value="Message me <@!322193320199716865> and join my discord server dedicated to my projects [https://discord.gg/fKcTKxW6Jv](https://discord.gg/fKcTKxW6Jv).", inline=False)
 		await message.channel.send(embed=embed)
 	
+	elif message.content.lower().startswith('&getchannelid'):
+		sendUpdate.start()
+		await message.channel.send(message.channel.id)
+
 	elif message.content.lower().startswith('&getdata'):
 		if(str(message.author.id) == "322193320199716865"):
 			print('Logged in as')
@@ -404,6 +410,7 @@ async def on_raw_reaction_add(payload):
 	
 	# Make sure that the message the user is reacting to is the one we care about.
 	message = await client.get_channel(payload.channel_id).fetch_message(payload.message_id)
+	# print(payload.channel_id)
 	user = payload.member
 	# print(payload)
 	if message.author.id != client.user.id:
@@ -413,5 +420,19 @@ async def on_raw_reaction_add(payload):
 	if(user.id == int(message.embeds[0].author.url.split("/")[-1]) and payload.emoji.name =='❌'): 
 		await message.delete()
 
+#minutes
+@tasks.loop(minutes=60)
+async def sendUpdate():
+	channel = client.get_channel(871930436891332628)
+	
+	guildsSm =list(map(getGuildName, client.guilds))
+	
+	guildsSm.sort(key=getNum)
+	# print(guildsSm)
+	totalusers = 0
+	for i in guildsSm:
+		totalusers += i[1]
+	print('Logged in as ' + client.user.name+ "\nTotal Users: " + str(totalusers)+ "\nTotal Servers: " + str(len(client.guilds))+"\nTiktoks Converted: " + str(db["tiktoksConverted"])+"\nData Sent: " + str(db["dataSent"]/8388608*8) + "\nTotal users using bot " + str(len(db["uniqueUsersUsed"])))
+	await channel.send('Logged in as ' + client.user.name+ "\nTotal Users: " + str(totalusers)+ "\nTotal Servers: " + str(len(client.guilds))+"\nTiktoks Converted: " + str(db["tiktoksConverted"])+"\nData Sent: " + str(db["dataSent"]/8388608*8) + "mb\nTotal users using bot " + str(len(db["uniqueUsersUsed"])))
 
 client.run(my_secret)
