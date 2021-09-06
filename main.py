@@ -250,105 +250,6 @@ async def on_message(message):
 			await message.channel.send(guildsSm)
 			await message.channel.send("discords using bot: "+ str(db["discordsUsingBot"]))
 
-	# elif message.content.lower().startswith('&leaveunusedservers'):
-	# 	embed=discord.Embed(title="TikTok Auto Embed Leaving Now", description="If you want to continue using the bot go to\nhttps://tinyurl.com/TiktokAutoEmbed", color=0xFF5733)
-	# 	for guild in client.guilds:
-	# 		if(str(guild) not in db["discordsUsingBot"]):
-	# 			print("doesn'tuse")
-	# 			print(str(guild))
-	# 			foundGen = False
-	# 			for channel in guild.channels:
-	# 				# print(channel.name)
-	# 				# global foundGen
-	# 				if(channel.name == 'general'):
-	# 					print(channel)
-	# 					try:
-	# 						await channel.send(embed=embed)
-	# 						foundGen = True
-	# 					except Exception as e: 
-	# 						print(e)
-	# 			if(not foundGen):
-	# 				notSent = True
-	# 				i = 0
-	# 				while(notSent and i<= 10):
-	# 					try:
-	# 						await guild.channels[i].send(embed=embed)
-	# 						print(guild.channels[i])
-	# 						notSent = False
-	# 					except Exception as e: 
-	# 						print(e)
-	# 					i += 1
-				
-	# 			await guild.leave()
-	# 		elif(db["listOfDiscordsMess"][db["discordsUsingBot"].index(str(guild))] <= 25):
-	# 			print("inactive")
-	# 			print(str(guild))
-	# 			foundGen = False
-	# 			for channel in guild.channels:
-	# 				# print(channel.name)
-	# 				# global foundGen
-	# 				if(channel.name == 'general'):
-	# 					print(channel)
-	# 					try:
-	# 						await channel.send(embed=embed)
-	# 						foundGen = True
-	# 					except Exception as e: 
-	# 						print(e)
-	# 			if(not foundGen):
-	# 				notSent = True
-	# 				i = 0
-	# 				while(notSent and i<= 10):
-	# 					try:
-	# 						await guild.channels[i].send(embed=embed)
-	# 						print(guild.channels[i])
-	# 						notSent = False
-	# 					except Exception as e: 
-	# 						print(e)
-	# 					i += 1
-	# 			await guild.leave()
-	# 		elif(guild.member_count <= 5):
-	# 			print("noMembers")
-	# 			print(str(guild))
-	# 			print(guild.member_count)
-	# 			foundGen = False
-	# 			for channel in guild.channels:
-	# 				# print(channel.name)
-	# 				# global foundGen
-	# 				if(channel.name == 'general'):
-	# 					print(channel)
-	# 					try:
-	# 						await channel.send(embed=embed)
-	# 						foundGen = True
-	# 					except Exception as e: 
-	# 						print(e)
-	# 			if(not foundGen):
-	# 				notSent = True
-	# 				i = 0
-	# 				while(notSent and i<= 10):
-	# 					try:
-	# 						await guild.channels[i].send(embed=embed)
-	# 						print(guild.channels[i])
-	# 						notSent = False
-	# 					except Exception as e: 
-	# 						print(e)
-	# 					i += 1
-	# 			await guild.leave()
-
-	# elif message.content.lower().startswith('&resetdiscordlists'):
-	# # 	embed=discord.Embed(title="TikTok Auto Embed Leaving Now", description="If you want to continue using the bot go to\nhttps://tinyurl.com/TiktokAutoEmbed", color=0xFF5733)
-	# 	getGuildNames = []
-	# 	for guild in client.guilds:
-	# 		getGuildNames.append(str(guild))
-	# 	print(getGuildNames)
-	# 	newdiscordsUsingBot = []
-	# 	newlistOfDiscordsMess = [] 
-	# 	for guild in db["discordsUsingBot"]:
-	# 		if(guild in getGuildNames):
-	# 			newdiscordsUsingBot.append(guild)
-	# 			newlistOfDiscordsMess.append(db["listOfDiscordsMess"][db["discordsUsingBot"].index(str(guild))])
-
-	# 	db["discordsUsingBot"] = newdiscordsUsingBot
-	# 	db["listOfDiscordsMess"] =newlistOfDiscordsMess
 
 	# tries to download if it sees .tiktok. in a message
 	elif (re.search("\.tiktok\.", message.content) != None):
@@ -402,8 +303,15 @@ async def on_message(message):
 					print("no perms")
 		except Exception as e: 
 			print(e)
-			os.remove(fileLoc)
-			await toEdit.delete()
+			try:
+				os.remove(fileLoc)
+				print("failed after download")
+			except:
+				print("faild never downloaded")
+			try:
+				await toEdit.delete()
+			except:
+				print("not able to delete working on it")
 
 @client.event
 async def on_raw_reaction_add(payload):
