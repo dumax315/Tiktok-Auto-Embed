@@ -9,7 +9,8 @@ import math
 
 from discord.ext import tasks
 from replit import db
-
+#to make urlsafe stirings
+import base64
 
 # from keep_alive import keep_alive
 
@@ -114,6 +115,9 @@ async def downloadTiktok(url):
 			print(e)
 			postername = ""
 		# print(postername)
+
+		#file name set
+		localDow = "".join(x for x in capt[0:15] if x.isalnum()) + str(localDow)
 
 		# print(videoUrl)
 		cookies = await page.cookies()
