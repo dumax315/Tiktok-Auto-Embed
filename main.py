@@ -9,8 +9,6 @@ import math
 
 from discord.ext import tasks
 from replit import db
-#to make urlsafe stirings
-import base64
 
 # from keep_alive import keep_alive
 
