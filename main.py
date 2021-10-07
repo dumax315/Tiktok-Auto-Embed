@@ -10,6 +10,7 @@ import math
 from discord.ext import tasks
 from replit import db
 
+
 # from keep_alive import keep_alive
 
 # workingDir = os.getcwd()
@@ -114,7 +115,7 @@ async def downloadTiktok(url):
 			postername = ""
 		# print(postername)
 
-		#file name set
+		#get costum file names (might brake?)
 		localDow = "".join(x for x in capt[0:15] if x.isalnum()) + str(localDow)
 
 		# print(videoUrl)
@@ -213,9 +214,11 @@ async def on_ready():
 @client.event
 async def on_message(message):
 	#is server dead?
-	if(str(message.guild) in db["discordsUsingBot"]):
-		# print(db["discordsUsingBot"].index(str(message.guild)))
-		db["listOfDiscordsMess"][db["discordsUsingBot"].index(str(message.guild))] += 1
+	#is this code breaking everything
+	
+	# if(str(message.guild) in db["discordsUsingBot"]):
+	# 	# print(db["discordsUsingBot"].index(str(message.guild)))
+	# 	db["listOfDiscordsMess"][db["discordsUsingBot"].index(str(message.guild))] += 1
 		# print(db["listOfDiscordsMess"][db["discordsUsingBot"].index(str(message.guild))])
 		
 	# we do not want the bot to reply to itself
@@ -268,6 +271,7 @@ async def on_message(message):
 		else:
 			delOrinoal = True
 		try:
+			print(message.guild)
 			fileLoc, capt, LiCoShare, avaSrc, postername = await downloadTiktok(message.content)
 			print(message.guild)
 			if(str(message.author.id) not in db["uniqueUsersUsed"]):
