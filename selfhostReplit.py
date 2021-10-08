@@ -9,6 +9,8 @@ import math
 
 from replit import db
 
+
+#delete this code after first run if you want to save stattics
 db["tiktoksConverted"] = 0
 db["dataSent"] = 0
 db["uniqueUsersUsed"] = []
