@@ -285,6 +285,8 @@ async def on_message(message):
 				db["listOfDiscordsMess"][db["discordsUsingBot"].index(str(message.guild))] += 1
 			file = discord.File(fileLoc)
 			embed=discord.Embed(url=message.content, description=message.content, color=discord.Color.blue())
+
+
 			# uses the authors nick name if they have one
 			try:
 				# if(message.author.nick != None):
@@ -295,9 +297,18 @@ async def on_message(message):
 				print("pm")
 				embed.set_footer(text="requested by: "+str(message.author), icon_url=message.author.avatar_url)
 			LikesComString = ":heart: " + LiCoShare[0] +" :speech_left: " +LiCoShare[1]+ " :arrow_right: " + LiCoShare[2]
-			LikesComString = ":heart: " + LiCoShare[0] +" :speech_left: " +LiCoShare[1]+ " :arrow_right: " + LiCoShare[2]
-			embed.add_field(name=capt, value=LikesComString, inline=True)
-			embed.set_footer(text=postername, icon_url=avaSrc)
+
+			try:
+				# print("caption= "+ capt)
+				if(capt == ""):
+					capt = "no caption"
+				
+				embed.add_field(name=capt, value=LikesComString, inline=True)
+
+				# embed.set_footer(text=postername, icon_url=avaSrc)
+				embed.set_author(name=postername, icon_url=avaSrc, url="https://www.tiktok.com/@"+str(postername))
+			except Exception as e: 
+				print(e)
 			toReact = await message.channel.send(embed=embed,file=file)
 			await toReact.add_reaction("❌")
 			db["tiktoksConverted"] += 1
