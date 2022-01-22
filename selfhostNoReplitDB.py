@@ -43,7 +43,6 @@ async def run_command(video_full_path, output_file_name, target_size):
 	os.remove(video_full_path)
 
 
-
 async def downloadTiktok(url):
 	# gets the downloadCount (for the file name) and increments it one
 	global downloadCount
@@ -72,9 +71,10 @@ async def downloadTiktok(url):
 			# await page.screenshot({'path': 'example.png'})
 			element = await page.querySelector('video')
 			videoUrl = await page.evaluate('(element) => element.src', element)
+		# print(videoUrl)
 		#gets the video captions
 		try:
-			cap = await page.querySelector('.tt-video-meta-caption')
+			cap = await page.querySelector('.tiktok-1ejylhp-DivContainer.e11995xo0')
 			capt = await page.evaluate('(element) => element.innerText', cap)
 			# print(capt)
 		except Exception as e: 
@@ -82,7 +82,7 @@ async def downloadTiktok(url):
 			capt = "No Caption"
 		#get the likes comments and shares
 		try:
-			LiCoShData = await page.querySelectorAll('.bar-item-text.jsx-18968439')
+			LiCoShData = await page.querySelectorAll('.tiktok-1xiuanb-ButtonActionItem.e1bs7gq20')
 			# print(LiCoShData)
 			LiCoSh = []
 			for i in LiCoShData:
@@ -96,7 +96,7 @@ async def downloadTiktok(url):
 		# print(LiCoSh)
 		#get poster image
 		try:
-			imgobj = await page.querySelector('span.tiktok-avatar.tiktok-avatar-circle.avatar>img')
+			imgobj = await page.querySelector('.tiktok-1zpj2q-ImgAvatar.e1e9er4e1')
 			imgsrc = await page.evaluate('(element) => element.src', imgobj)
 		except Exception as e: 
 			print(e)
@@ -104,7 +104,7 @@ async def downloadTiktok(url):
 
 		#get poster name
 		try:
-			posternameObj = await page.querySelector('h3.author-uniqueId')
+			posternameObj = await page.querySelector('h3.tiktok-debnpy-H3AuthorTitle.e10yw27c0')
 			postername = await page.evaluate('(element) => element.innerText', posternameObj)
 		except Exception as e: 
 			print(e)
@@ -148,6 +148,7 @@ async def downloadTiktok(url):
 			await run_command(pathToLastFile, pathToLastFile + "comp.mp4", 8388000)
 			pathToLastFile = pathToLastFile + "comp.mp4"
 		
+# 		db["dataSent"] += os.path.getsize(pathToLastFile)
 		#returns the path to the file
 		return(pathToLastFile,capt,LiCoSh,imgsrc,postername)
 	except Exception as e: 
@@ -246,16 +247,26 @@ async def on_message(message):
 			embed=discord.Embed(url=message.content, description=message.content, color=discord.Color.blue())
 			# uses the authors nick name if they have one
 			try:
-				if(message.author.nick != None):
-					embed.set_author(name=message.author.nick, url="https://discordapp.com/users/"+str(message.author.id), icon_url=message.author.avatar_url)
-				else:
-					embed.set_author(name=message.author, url="https://discordapp.com/users/"+str(message.author.id), icon_url=message.author.avatar_url)
+				# if(message.author.nick != None):
+				# 	embed.set_footer(text="requested by: "+str(message.author.nick), icon_url=message.author.avatar_url)
+				# else:
+				embed.set_footer(text="requested by: "+str(message.author), icon_url=message.author.avatar_url)
 			except:
 				print("pm")
-				embed.set_author(name=message.author, url="https://discordapp.com/users/"+str(message.author.id), icon_url=message.author.avatar_url)
+				embed.set_footer(text="requested by: "+str(message.author), icon_url=message.author.avatar_url)
 			LikesComString = ":heart: " + LiCoShare[0] +" :speech_left: " +LiCoShare[1]+ " :arrow_right: " + LiCoShare[2]
-			embed.add_field(name=capt, value=LikesComString, inline=True)
-			embed.set_footer(text=postername, icon_url=avaSrc)
+
+			try:
+				# print("caption= "+ capt)
+				if(capt == ""):
+					capt = "no caption"
+				
+				embed.add_field(name=capt, value=LikesComString, inline=True)
+
+				# embed.set_footer(text=postername, icon_url=avaSrc)
+				embed.set_author(name=postername, icon_url=avaSrc, url="https://www.tiktok.com/@"+str(postername))
+			except Exception as e: 
+				print(e)
 			toReact = await message.channel.send(embed=embed,file=file)
 			await toReact.add_reaction("❌")
 			print(fileLoc)
@@ -291,7 +302,7 @@ async def on_raw_reaction_add(payload):
 				return
 		# print(message.embeds[0].author.url.split("/")[-1])
 		# check if the clicker is the orinional sender
-		if(user.id == int(message.embeds[0].author.url.split("/")[-1]) and payload.emoji.name =='❌'): 
+		if(str(user) == message.embeds[0].footer.text.split(" ")[-1] and payload.emoji.name =='❌'): 
 			await message.delete()
 	except Exception as e: 
 		print(e)
