@@ -75,13 +75,25 @@ async def downloadTiktok(url):
 			element = await page.querySelector('video')
 			videoUrl = await page.evaluate('(element) => element.src', element)
 		except:
-			await page.goto(url, {"waitUntil": 'load', "timeout": 1000000})
-			# await page.waitForSelector('video')
-			# await page.waitFor(2000);
-			
-			# await page.screenshot({'path': 'example.png'})
-			element = await page.querySelector('video')
-			videoUrl = await page.evaluate('(element) => element.src', element)
+			try:
+				await page.goto(url, {"waitUntil": 'load', "timeout": 1000000})
+				await page.waitForSelector('video')
+				# await page.waitFor(2000);
+				
+				# await page.screenshot({'path': 'example.png'})
+				# changed from searching for "video"
+				element = await page.querySelector('video')
+				videoUrl = await page.evaluate('(element) => element.src', element)
+			except:
+				await page.goto(url, {"waitUntil": 'load', "timeout": 1000000})
+				# await page.waitForSelector('video')
+				# await page.waitFor(2000);
+				
+				# await page.screenshot({'path': 'example.png'})
+				# changed from searching for "video"
+				element = await page.querySelector('video')
+				videoUrl = await page.evaluate('(element) => element.src', element)
+
 		# print(videoUrl)
 		#gets the video captions
 		try:
@@ -100,6 +112,7 @@ async def downloadTiktok(url):
 				LiCoSh.append(await page.evaluate('(element) => element.innerText', i))
 			# print(LiCoSh)
 		except Exception as e: 
+			db["errors"] += 1
 			print(e)
 			LiCoSh = ["error","error","error"]
 		if(LiCoSh == []):
@@ -111,6 +124,7 @@ async def downloadTiktok(url):
 			imgsrc = await page.evaluate('(element) => element.src', imgobj)
 		except Exception as e: 
 			print(e)
+			db["errors"] += 1
 			imgsrc = ""
 
 		#get poster name
@@ -163,13 +177,15 @@ async def downloadTiktok(url):
 		#returns the path to the file
 		return(pathToLastFile,capt,LiCoSh,imgsrc,postername)
 	except Exception as e: 
+		db["errors"] += 1
 		print(e)
 		# closes the browser if it is open 
 		try:
 			await browser.close()
 		except:
 			pass
-
+	
+	
 logger = logging.getLogger('discord')
 logger.setLevel(logging.INFO)
 handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
