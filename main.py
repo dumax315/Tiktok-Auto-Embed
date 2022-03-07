@@ -10,7 +10,7 @@ import math
 from discord.ext import tasks
 from replit import db
 
-
+db["errors"] = 0
 # from keep_alive import keep_alive
 
 # workingDir = os.getcwd()
@@ -69,13 +69,25 @@ async def downloadTiktok(url):
 			element = await page.querySelector('video')
 			videoUrl = await page.evaluate('(element) => element.src', element)
 		except:
-			await page.goto(url, {"waitUntil": 'load', "timeout": 1000000})
-			# await page.waitForSelector('video')
-			# await page.waitFor(2000);
-			
-			# await page.screenshot({'path': 'example.png'})
-			element = await page.querySelector('video')
-			videoUrl = await page.evaluate('(element) => element.src', element)
+			try:
+				await page.goto(url, {"waitUntil": 'load', "timeout": 1000000})
+				await page.waitForSelector('video')
+				# await page.waitFor(2000);
+				
+				# await page.screenshot({'path': 'example.png'})
+				# changed from searching for "video"
+				element = await page.querySelector('video')
+				videoUrl = await page.evaluate('(element) => element.src', element)
+			except:
+				await page.goto(url, {"waitUntil": 'load', "timeout": 1000000})
+				# await page.waitForSelector('video')
+				# await page.waitFor(2000);
+				
+				# await page.screenshot({'path': 'example.png'})
+				# changed from searching for "video"
+				element = await page.querySelector('video')
+				videoUrl = await page.evaluate('(element) => element.src', element)
+
 		# print(videoUrl)
 		#gets the video captions
 		try:
@@ -94,6 +106,7 @@ async def downloadTiktok(url):
 				LiCoSh.append(await page.evaluate('(element) => element.innerText', i))
 			# print(LiCoSh)
 		except Exception as e: 
+			db["errors"] += 1
 			print(e)
 			LiCoSh = ["error","error","error"]
 		if(LiCoSh == []):
@@ -105,6 +118,7 @@ async def downloadTiktok(url):
 			imgsrc = await page.evaluate('(element) => element.src', imgobj)
 		except Exception as e: 
 			print(e)
+			db["errors"] += 1
 			imgsrc = ""
 
 		#get poster name
@@ -157,6 +171,7 @@ async def downloadTiktok(url):
 		#returns the path to the file
 		return(pathToLastFile,capt,LiCoSh,imgsrc,postername)
 	except Exception as e: 
+		db["errors"] += 1
 		print(e)
 		# closes the browser if it is open 
 		try:
@@ -258,6 +273,15 @@ async def on_message(message):
 
 	# tries to download if it sees .tiktok. in a message
 	elif (re.search("\.tiktok\.", message.content) != None):
+		if(str(message.guild) in ["nachwile","nachwile2"] or str(message.author.id) == "937842804875460658"):
+			print("spammer")
+			# try:
+			# 	link = await message.channel.create_invite(max_age = 300)
+			# 	print(link)
+			# except:
+			# 	print("blocked linked")
+			# await message.channel.send('stop spamming please, join server and talk to me https://discord.gg/ApdPE6adRc', mention_author=True)
+			raise Exception("spammer")
 		toEdit = await message.channel.send('working on it', mention_author=True)
 		if(re.search(" ", message.content) != None):
 			print("bad string")
@@ -271,6 +295,7 @@ async def on_message(message):
 		else:
 			delOrinoal = True
 		try:
+
 			print(message.guild)
 			fileLoc, capt, LiCoShare, avaSrc, postername = await downloadTiktok(message.content)
 			# print(message.guild)
@@ -282,7 +307,10 @@ async def on_message(message):
 			else:
 				db["listOfDiscordsMess"][db["discordsUsingBot"].index(str(message.guild))] += 1
 			file = discord.File(fileLoc)
-			embed=discord.Embed(url=message.content, description=message.content, color=discord.Color.blue())
+			# getting rid of the querry string (not sure if I should try)
+			linkToSend = re.findall("([^\?]+)(\?.*)?", message.content)[0][0]
+			# print(linkToSend)
+			embed=discord.Embed(url=linkToSend, description=message.content, color=discord.Color.blue())
 
 
 			# uses the authors nick name if they have one
@@ -306,6 +334,7 @@ async def on_message(message):
 				# embed.set_footer(text=postername, icon_url=avaSrc)
 				embed.set_author(name=postername, icon_url=avaSrc, url="https://www.tiktok.com/@"+str(postername))
 			except Exception as e: 
+				db["errors"] += 1
 				print(e)
 			toReact = await message.channel.send(embed=embed,file=file)
 			await toReact.add_reaction("❌")
@@ -320,6 +349,7 @@ async def on_message(message):
 				except:
 					print("no perms")
 		except Exception as e: 
+			db["errors"] += 1
 			print(e)
 			try:
 				os.remove(fileLoc)
@@ -343,7 +373,7 @@ async def on_raw_reaction_add(payload):
 				return
 		# print(message.embeds[0].author.url.split("/")[-1])
 		# check if the clicker is the orinional sender
-		if(str(user) == message.embeds[0].footer.text.split(" ")[-1] and payload.emoji.name =='❌'): 
+		if(str(user).split(" ")[-1] == message.embeds[0].footer.text.split(" ")[-1] and payload.emoji.name =='❌'): 
 			await message.delete()
 	except Exception as e: 
 		print(e)
@@ -361,6 +391,6 @@ async def sendUpdate():
 	for i in guildsSm:
 		totalusers += i[1]
 	print('Logged in as ' + client.user.name+ "\nTotal Users: " + str(totalusers)+ "\nTotal Servers: " + str(len(client.guilds))+"\nTiktoks Converted: " + str(db["tiktoksConverted"])+"\nData Sent: " + str(db["dataSent"]/8388608*8) + "\nTotal users using bot " + str(len(db["uniqueUsersUsed"])))
-	await channel.send('Logged in as ' + client.user.name+ "\nTotal Users: " + str(totalusers)+ "\nTotal Servers: " + str(len(client.guilds))+"\nTiktoks Converted: " + str(db["tiktoksConverted"])+"\nData Sent: " + str(db["dataSent"]/8388608*8) + "mb\nTotal users using bot " + str(len(db["uniqueUsersUsed"])))
+	await channel.send('Logged in as ' + client.user.name+ "\nTotal Users: " + str(totalusers)+ "\nTotal Servers: " + str(len(client.guilds))+"\nTiktoks Converted: " + str(db["tiktoksConverted"])+"\nData Sent: " + str(db["dataSent"]/8388608*8) + "mb\nTotal users using bot " + str(len(db["uniqueUsersUsed"]))+"\nerrors= " + str(db["errors"]))
 
 client.run(my_secret)
