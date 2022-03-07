@@ -8,6 +8,7 @@ import logging
 import math
 
 from replit import db
+db["errors"] = 0
 
 
 #delete this code after first run if you want to save stattics
