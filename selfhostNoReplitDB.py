@@ -127,7 +127,7 @@ async def get(text):
                   cookies = session.cookie_jar.filter_cookies('https://www.tiktok.com')
 
                   jar = {}
-                  for key, cookie in cookies.items():
+                  for cookie in cookies.items():
                     # print('Key: "%s", Value: "%s"' % (cookie.key, cookie.value))
                     jar[cookie.key] = cookie.value
                   # print(jar)
@@ -380,7 +380,7 @@ async def on_message(message):
         print("failed after download")
       except:
         print(message.content)
-        print("faild never downloaded")
+        print("failed never downloaded")
       try:
         await toEdit.delete()
       except:
