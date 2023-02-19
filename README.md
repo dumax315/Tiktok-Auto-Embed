@@ -1,5 +1,5 @@
 # TikTok Auto Embed for Discord
-Discord Bot that downloads and embeds tiktok links sent by users
+Discord Bot that downloads and embeds tiktok links sent by users.
 
 The TikTok Auto Embed bot will automatically embed the tiktoks links you send. This is helpful because your friends can now watch the tiktoks you send without leaving the app. When you post a TikTok link, the TikTok Auto Embed bot will delete your original message and send a new message containing: the original link, the sender's discord tag, and an embedded copy of the video.
 
@@ -18,3 +18,15 @@ https://tinyurl.com/TiktokAutoEmbed
 
 
 Thanks to https://github.com/thedtvn for helping with the webscraping code.
+
+## Docker
+To run on Docker, pull the image using the following command:
+```
+docker pull ghcr.io/dumax315/tiktok-auto-embed:latest
+```
+Then, run the container with the following command:
+```
+docker run ghcr.io/dumax315/tiktok-auto-embed:latest -e token=YOURDISCORDTOKEN
+```
+> **Warning**
+> You may want to use a version tag instead of latest. See this repo's GitHub releases page for available versions.
