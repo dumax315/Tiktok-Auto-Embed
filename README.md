@@ -26,7 +26,7 @@ docker pull ghcr.io/dumax315/tiktok-auto-embed:latest
 ```
 Then, run the container with the following command:
 ```
-docker run ghcr.io/dumax315/tiktok-auto-embed:latest -e token=YOURDISCORDTOKEN
+docker run -e token=YOURDISCORDTOKEN ghcr.io/dumax315/tiktok-auto-embed:latest
 ```
 > **Warning**
 > You may want to use a version tag instead of latest. See this repo's GitHub releases page for available versions.
