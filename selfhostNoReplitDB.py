@@ -10,16 +10,23 @@ import sys
 
 
 from discord.ext import tasks
+from discord import app_commands
 # from replit import db
 my_secret = os.environ['token']
-# db["listOfDiscordsMess"] = []
-# db["discordsUsingBot"] = []
+
+
+db = {}
+db["listOfDiscordsMess"] = []
+db["discordsUsingBot"] = []
+db["dataSent"] = 0
+db["tiktoksConverted"] = 0
+db["uniqueUsersUsed"] = []
 # get rid of extral files
 # find . -name "*.mp4" -type f -delete
 #find . -name "*.log" -type f -delete
 #find . -name "*.temp" -type f -delete
 
-os.system('find . -name "*.temp" -type f -delete')
+os.system('find . -name "*.mp4" -type f -delete')
 os.system('find . -name "*.log" -type f -delete')
 os.system('find . -name "*.temp" -type f -delete')
 # import matplotlib.pyplot as plt
@@ -36,7 +43,7 @@ print(discord.__version__)
 intents = discord.Intents.default()
 intents.guilds = True
 intents.message_content = True
-# db["errors"] = 0
+db["errors"] = 0
 
 # db["alive"] += 1
 
@@ -101,8 +108,8 @@ async def get(text):
         })
         async with session.get(a) as resp:
           a = resp.url
-
-
+  
+  
       async with aiohttp.ClientSession() as session:
         session.headers.update({
                                  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36'})
@@ -112,7 +119,7 @@ async def get(text):
             data = rjson.get("html")
           else:
             data = None
-
+  
         if data:
           tiktokid = re.findall('https://www.tiktok.com/@(.*)/video/(.{19})', data)
           if tiktokid:
@@ -121,23 +128,23 @@ async def get(text):
               session.headers.update({
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36'})
               async with session.get(
-                  f"https://www.tiktok.com/node/share/video/@{tiktokid[0]}/{tiktokid[1]}") as resptk:
+                  f"https://t.tiktok.com/api/item/detail/?itemId={tiktokid[1]}") as resptk:
                 if resptk.status == 200:
                   rjson = await resptk.json()
                   cookies = session.cookie_jar.filter_cookies('https://www.tiktok.com')
-
+  
                   jar = {}
-                  for cookie in cookies.items():
+                  for key, cookie in cookies.items():
                     # print('Key: "%s", Value: "%s"' % (cookie.key, cookie.value))
                     jar[cookie.key] = cookie.value
                   # print(jar)
                   # for selenium_cookie in cookies:
                   #   print(selenium_cookie)
                   #   # jar[selenium_cookie['Domain']] = selenium_cookie['tt_csrf_token']
-                    
+                  # print(rjson["itemInfo"]["itemStruct"]["video"]["playAddr"])
                   video_url = rjson["itemInfo"]["itemStruct"]["video"]["playAddr"]
                   LiCoSh = ["error","error","error"]
-                  
+                  # print(rjson["itemInfo"]["itemStruct"]["video"])
                   # print(rjson["itemInfo"]["itemStruct"]["desc"])
                   capt = rjson["itemInfo"]["itemStruct"]["desc"]
                   
@@ -145,13 +152,13 @@ async def get(text):
                   LiCoSh[0] = rjson["itemInfo"]["itemStruct"]["stats"]["diggCount"]
                   LiCoSh[1] = rjson["itemInfo"]["itemStruct"]["stats"]["commentCount"]
                   LiCoSh[2] = rjson["itemInfo"]["itemStruct"]["stats"]["shareCount"]
-
+  
                   # print(rjson["itemInfo"]["itemStruct"]["author"]["avatarMedium"])
                   imgsrc = rjson["itemInfo"]["itemStruct"]["author"]["avatarMedium"]
-
+  
                   # print(rjson["itemInfo"]["itemStruct"]["author"]["uniqueId"])
                   postername = rjson["itemInfo"]["itemStruct"]["author"]["uniqueId"]
-
+  
                   video_format = rjson["itemInfo"]["itemStruct"]["video"]["format"]
                 else:
                   video_url = None
@@ -160,6 +167,7 @@ async def get(text):
                 # print(video_url)
                 # return (video_url)
                 # print(cookies)
+                localDow = "".join(x for x in capt[0:15] if x.isalnum()) + str(localDow)
                 chunk_size = 4096
             
                 # custom headers these seem to work almost always
@@ -187,11 +195,11 @@ async def get(text):
                   await run_command(pathToLastFile, pathToLastFile + "comp.mp4", 8388000)
                   pathToLastFile = pathToLastFile + "comp.mp4"
                 
-                # db["dataSent"] += os.path.getsize(pathToLastFile)
+                db["dataSent"] += os.path.getsize(pathToLastFile)
                 #returns the path to the file
                 return(pathToLastFile,capt,LiCoSh,imgsrc,postername)
   except Exception as e: 
-    # db["errors"] += 1
+    db["errors"] += 1
     print(e)
     # return (video_url, capt,LiCoSh,imgsrc,postername)
 
@@ -204,8 +212,15 @@ logger.addHandler(handler)
 
 # hosts a website that can be pinged for uptime
 # keep_alive()
+import datetime
+today = datetime.date.today()
+future = datetime.date(2023,4,1)
+diff = future - today
+print (diff.days)
 # sets the activity to listing to &help one start
-client = discord.AutoShardedClient(activity=discord.Activity(type=discord.ActivityType.listening, name='&Help'), intents=intents)
+client = discord.AutoShardedClient(activity=discord.Activity(type=discord.ActivityType.listening, name=f'will shut down in {diff} days'), intents=intents)
+
+tree = app_commands.CommandTree(client)
 # need to add , intents=intents
 def getGuildName(n):
   return [n.name, n.member_count]
@@ -215,16 +230,19 @@ def getNum(obj):
 
 @client.event
 async def on_ready():
+  
   print('Logged in as')
   print(client.user.name)
   print(client.user.id)
   guildsSm =list(map(getGuildName, client.guilds))
   
   guildsSm.sort(key=getNum)
-  print(guildsSm)
+  # print(guildsSm)
   totalusers = 0
   for i in guildsSm:
     totalusers += i[1]
+  print(f"number of Guilds: {len(guildsSm)}")
+  print(f"number of users: {totalusers}")
  # print("Total Users: " + str(totalusers))
  # print("Total Servers: " + str(len(client.guilds)))
  # print("Tiktoks Converted: " + str(db["tiktoksConverted"]))
@@ -233,8 +251,7 @@ async def on_ready():
  # sendUpdate.start()
   # print("discords using bot: " + str(db["discordsUsingBot"]))
   # print("Total discords using bot " + str(len(db["discordsUsingBot"])))
-  # db["listOfDiscordsMess"] = []
-  # db["discordsUsingBot"] = []
+
   # # toMake = []
   # # for i in range(0, len(db["discordsUsingBot"])):
   # #   toMake.append(0)
@@ -243,15 +260,11 @@ async def on_ready():
   # print(db["listOfDiscordsMess"])
 
   print('------')
+  await tree.sync()
 
 @client.event
 async def on_message(message):
-  #is server dead?
-  #is this code breaking everything
-  # if(str(message.guild) in db["discordsUsingBot"]):
-  #   # print(db["discordsUsingBot"].index(str(message.guild)))
-  #   db["listOfDiscordsMess"][db["discordsUsingBot"].index(str(message.guild))] += 1
-    # print(db["listOfDiscordsMess"][db["discordsUsingBot"].index(str(message.guild))])
+
     
   # we do not want the bot to reply to itself
   if message.author.id == client.user.id:
@@ -260,6 +273,9 @@ async def on_message(message):
   # sends a description of the bot on &help
   elif message.content.lower().startswith('&help'):
     embed=discord.Embed(title="About TikTok Auto Embed", description="When you post a tiktok link Tiktok Auto Embed will delete your original message and send a message containing the original link, the senders @, and a dowloaded copy of the video.", color=0xFF5733)
+    
+
+    embed.add_field(name="Will it shut down march 15 due to changes in replit hosting policy", value="Use: https://discord.com/api/oauth2/authorize?client_id=948242943595147325&permissions=536898560&scope=applications.commands%20bot as an alternative", inline=False)
     embed.add_field(name="Can I add this bot to my server?", value="Yep, just go to this link.\nhttps://tinyurl.com/TiktokAutoEmbed", inline=False)
     embed.add_field(name="Why do long videos look bad?", value="Discord has a file limit of 8 mb, this isn't a problem for most tiktoks but for some the bot needs to compress them before sending. Because of this it can also take the bot longer to send long vides espeically if a lot of people are using the bot at once.", inline=False)
     embed.add_field(name="Say Hi to the Creator", value="Message me <@!322193320199716865> and join my discord server dedicated to my projects [https://discord.gg/fKcTKxW6Jv](https://discord.gg/fKcTKxW6Jv).", inline=False)
@@ -282,10 +298,10 @@ async def on_message(message):
       for i in guildsSm:
         totalusers += i[1]
       # print("Data Sent: " + str(db["dataSent"]/8388608*8))
-      # strTosend = 'Logged in as ' + client.user.name + str(client.user.id) + "\nTotal Users: " + str(totalusers) + "\nTotal Servers: " + str(len(client.guilds)) + "\nTiktoks Converted: " + str(db["tiktoksConverted"])+"\nData Sent: " + str(db["dataSent"]/8388608*8) + "\nTotal discords using bot " + str(len(db["discordsUsingBot"]))+"\nTotal users using bot " + str(len(db["uniqueUsersUsed"]))
+      strTosend = f"number of Guilds: {len(guildsSm)} \nnumber of users: {totalusers}"
 
-      # await message.channel.send(strTosend)
-      await message.channel.send(guildsSm)
+      await message.channel.send(strTosend)
+      # await message.channel.send(guildsSm)
       # await message.channel.send("discords using bot: "+ str(db["discordsUsingBot"]))
 
 
@@ -317,13 +333,9 @@ async def on_message(message):
       print(message.guild)
       fileLoc, capt, LiCoShare, avaSrc, postername = await get(message.content)
       # print(message.guild)
-      # if(str(message.author.id) not in db["uniqueUsersUsed"]):
-      #   db["uniqueUsersUsed"].append(str(message.author.id))
-      # if(str(message.guild) not in db["discordsUsingBot"]):
-      #   db["discordsUsingBot"].append(str(message.guild))
-      #   db["listOfDiscordsMess"].append(0)
-      # else:
-      #   db["listOfDiscordsMess"][db["discordsUsingBot"].index(str(message.guild))] += 1
+      if(str(message.author.id) not in db["uniqueUsersUsed"]):
+        db["uniqueUsersUsed"].append(str(message.author.id))
+
       file = discord.File(fileLoc)
       # getting rid of the querry string (not sure if I should try)
       linkToSend = re.findall("([^\?]+)(\?.*)?", message.content)[0][0]
@@ -355,11 +367,13 @@ async def on_message(message):
         # embed.set_footer(text=postername, icon_url=avaSrc)
         embed.set_author(name=postername, icon_url=avaSrc, url="https://www.tiktok.com/@"+str(postername))
       except Exception as e: 
-        # db["errors"] += 1
+        db["errors"] += 1
         print(e)
+        print("361")
+      # embed.add_field(name="Shutting Down", value="The bot will shut down March 15 (this is due to a change in replit hosting costs *but if enough people start using https://theoh.dev/GroupNewTab I might just pay for the hosting*)", inline=False)
       toReact = await message.channel.send(embed=embed,file=file)
       await toReact.add_reaction("❌")
-      # db["tiktoksConverted"] += 1
+      db["tiktoksConverted"] += 1
       print(fileLoc)
       os.remove(fileLoc)
       await toEdit.delete()
@@ -370,7 +384,7 @@ async def on_message(message):
         except:
           print("no perms")
     except Exception as e: 
-      # db["errors"] += 1
+      db["errors"] += 1
       print(e)
       try:
         exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -380,7 +394,7 @@ async def on_message(message):
         print("failed after download")
       except:
         print(message.content)
-        print("failed never downloaded")
+        print("faild never downloaded")
       try:
         await toEdit.delete()
       except:
@@ -415,15 +429,27 @@ async def sendUpdate():
   totalusers = 0
   for i in guildsSm:
     totalusers += i[1]
-  # print('Logged in as ' + client.user.name+ "\nTotal Users: " + str(totalusers)+ "\nTotal Servers: " + str(len(client.guilds))+"\nTiktoks Converted: " + str(db["tiktoksConverted"])+"\nData Sent: " + str(db["dataSent"]/8388608*8) + "\nTotal users using bot " + str(len(db["uniqueUsersUsed"])))
-  # await channel.send('Logged in as ' + client.user.name+ "\nTotal Users: " + str(totalusers)+ "\nTotal Servers: " + str(len(client.guilds))+"\nTiktoks Converted: " + str(db["tiktoksConverted"])+"\nData Sent: " + str(db["dataSent"]/8388608*8) + "mb\nTotal users using bot " + str(len(db["uniqueUsersUsed"]))+"\nerrors= " + str(db["errors"]))
+  print('Logged in as ' + client.user.name+ "\nTotal Users: " + str(totalusers)+ "\nTotal Servers: " + str(len(client.guilds))+"\nTiktoks Converted: " + str(db["tiktoksConverted"])+"\nData Sent: " + str(db["dataSent"]/8388608*8) + "\nTotal users using bot " + str(len(db["uniqueUsersUsed"])))
+  await channel.send('Logged in as ' + client.user.name+ "\nTotal Users: " + str(totalusers)+ "\nTotal Servers: " + str(len(client.guilds))+"\nTiktoks Converted: " + str(db["tiktoksConverted"])+"\nData Sent: " + str(db["dataSent"]/8388608*8) + "mb\nTotal users using bot " + str(len(db["uniqueUsersUsed"]))+"\nerrors= " + str(db["errors"]))
 
-client.run(my_secret)
+# client.run(my_secret)
+
+@tree.command(name = "help", description = "get info about Tiktok Auto Embed") #Add the guild ids in which the slash command will appear. If it should be in all, remove the argument, but note that it will take some time (up to an hour) to register the command if it's for all guilds.
+async def help(interaction):
+  embed=discord.Embed(title="About TikTok Auto Embed", description="When you post a tiktok link Tiktok Auto Embed will delete your original message and send a message containing the original link, the senders @, and a dowloaded copy of the video.", color=0xFF5733)
+  embed.add_field(name="Will it shut down march 15 due to changes in replit hosting policy", value="Use: https://discord.com/api/oauth2/authorize?client_id=948242943595147325&permissions=536898560&scope=applications.commands%20bot as an alternative", inline=False)
+  embed.add_field(name="Can I add this bot to my server?", value="Yep, just go to this link.\nhttps://tinyurl.com/TiktokAutoEmbed", inline=False)
+  embed.add_field(name="Why do long videos look bad?", value="Discord has a file limit of 8 mb, this isn't a problem for most tiktoks but for some the bot needs to compress them before sending. Because of this it can also take the bot longer to send long vides espeically if a lot of people are using the bot at once.", inline=False)
+  embed.add_field(name="Say Hi to the Creator", value="Message me <@!322193320199716865> and join my discord server dedicated to my projects [https://discord.gg/fKcTKxW6Jv](https://discord.gg/fKcTKxW6Jv).", inline=False)
+  await interaction.response.send_message(embed=embed)
+
+  
 # try:
 #   client.run(my_secret)
 # except:
 #   os.system("kill 1")
 
 # sendUpdate.start()
-  #client.run(my_secret)
+client.run(my_secret)
+
 
